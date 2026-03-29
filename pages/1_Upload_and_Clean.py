@@ -1,3 +1,111 @@
+def apply_custom_style():
+    st.markdown("""
+    <style>
+    .main {
+        background-color: #0E1117;
+    }
+
+    .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+
+    .hero-box {
+        padding: 2rem;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #1C1F26, #111827);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+        margin-bottom: 1.5rem;
+    }
+
+    .page-title {
+        font-size: 2.3rem;
+        font-weight: 800;
+        color: #FAFAFA;
+        margin-bottom: 0.4rem;
+    }
+
+    .page-subtitle {
+        font-size: 1rem;
+        color: #C9D1D9;
+        line-height: 1.7;
+    }
+
+    .section-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #FAFAFA;
+        margin-top: 1rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .feature-card {
+        padding: 1.25rem;
+        border-radius: 18px;
+        background-color: #1C1F26;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+        border: 1px solid #2A2F3A;
+        margin-bottom: 1rem;
+    }
+
+    .feature-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #FAFAFA;
+        margin-bottom: 0.5rem;
+    }
+
+    .feature-text {
+        font-size: 0.95rem;
+        color: #C9D1D9;
+        line-height: 1.6;
+    }
+
+    .info-box {
+        padding: 1rem 1.2rem;
+        border-radius: 14px;
+        background-color: #161B22;
+        border: 1px solid #30363D;
+        color: #C9D1D9;
+        margin-top: 0.8rem;
+        margin-bottom: 1rem;
+    }
+
+    .stMetric {
+        background-color: #1C1F26;
+        border: 1px solid #2A2F3A;
+        padding: 0.7rem;
+        border-radius: 14px;
+    }
+
+    div.stButton > button {
+        width: 100%;
+        border-radius: 12px;
+        font-weight: 600;
+        padding: 0.6rem 1rem;
+    }
+
+    div.stDownloadButton > button {
+        width: 100%;
+        border-radius: 12px;
+        font-weight: 600;
+        padding: 0.6rem 1rem;
+    }
+
+    div[data-testid="stDataFrame"] {
+        border: 1px solid #2A2F3A;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    section[data-testid="stSidebar"] {
+        background: #111827;
+        border-right: 1px solid #2A2F3A;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+
 import streamlit as st
 import pandas as pd
 import numpy as np
