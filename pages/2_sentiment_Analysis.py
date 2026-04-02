@@ -83,8 +83,8 @@ st.markdown("""
 <div class="hero-box">
     <div class="page-title">🤖 Sentiment Analysis Engine</div>
     <div class="page-subtitle">
-        This page performs sentiment analysis using DistilBERT. 
-        Select the text column, label column, and preferred domain, then run the model to generate predictions and confidence scores.
+        This page performs sentiment analysis using DistilBERT.
+        Select the text column, optional label column, preferred domain, and run the model.
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -94,36 +94,37 @@ st.markdown("""
 # Helper Functions
 # -------------------------------------------------
 @st.cache_resource
-def load_sentiment_model(model_name: str):
+def load_sentiment_model():
     """
-    Load a Hugging Face text classification pipeline and cache it.
+    Load a stable DistilBERT sentiment model and cache it.
     """
+    model_name = "distilbert-base-uncased-finetuned-sst-2-english"
     return pipeline(
-        task="text-classification",
+        "sentiment-analysis",
         model=model_name,
-        tokenizer=model_name,
-        truncation=True
+        tokenizer=model_name
     )
 
 
 def normalize_true_label(value):
     """
-    Normalize ground-truth labels into positive / negative / neutral.
+    Normalize dataset labels into positive / negative / neutral.
     """
     value = str(value).strip().lower()
 
     mapping = {
         "positive": "positive",
         "pos": "positive",
-        "1": "positive",
         "4": "positive",
         "5": "positive",
+        "4.0": "positive",
+        "5.0": "positive",
 
         "negative": "negative",
         "neg": "negative",
-        "0": "negative",
-        "1.0": "negative",
+        "1": "negative",
         "2": "negative",
+        "1.0": "negative",
         "2.0": "negative",
 
         "neutral": "neutral",
@@ -135,57 +136,25 @@ def normalize_true_label(value):
     return mapping.get(value, value)
 
 
-def map_model_output(model_label: str):
+def map_prediction(label, score, neutral_threshold=0.60):
     """
-    Map model output to standard labels.
-    Supports:
-    - LABEL_0 / LABEL_1 / LABEL_2
-    - NEGATIVE / POSITIVE / NEUTRAL
+    DistilBERT SST-2 is binary. We create a practical neutral band
+    using a confidence threshold.
     """
-    label = str(model_label).strip().lower()
+    label = str(label).strip().upper()
 
-    # Common 3-class mapping
-    if label in {"label_0"}:
-        return "negative"
-    if label in {"label_1"}:
-        return "neutral"
-    if label in {"label_2"}:
-        return "positive"
-
-    # Common 2-class mapping
-    if label == "negative":
-        return "negative"
-    if label == "positive":
-        return "positive"
-    if label == "neutral":
+    if score < neutral_threshold:
         return "neutral"
 
-    # SST-style binary labels
-    if label == "label_0":
-        return "negative"
-    if label == "label_1":
+    if label == "POSITIVE":
         return "positive"
+    if label == "NEGATIVE":
+        return "negative"
 
-    return label
-
-
-def get_default_model_for_domain(domain_name: str):
-    """
-    Domain-aware model selection.
-    You can later replace these with your own fine-tuned DistilBERT models.
-    """
-    domain_model_map = {
-        "General": "cardiffnlp/twitter-roberta-base-sentiment-latest",
-        "Student Feedback": "cardiffnlp/twitter-roberta-base-sentiment-latest",
-        "Movie Reviews": "lvwerra/distilbert-imdb",
-        "Product Reviews": "cardiffnlp/twitter-roberta-base-sentiment-latest",
-        "Social Media": "cardiffnlp/twitter-roberta-base-sentiment-latest",
-        "Customer Reviews": "cardiffnlp/twitter-roberta-base-sentiment-latest"
-    }
-    return domain_model_map.get(domain_name, "cardiffnlp/twitter-roberta-base-sentiment-latest")
+    return "neutral"
 
 
-def run_predictions(classifier, texts, batch_size=16):
+def run_predictions(classifier, texts, batch_size=16, neutral_threshold=0.60):
     predicted_labels = []
     confidence_scores = []
 
@@ -194,7 +163,12 @@ def run_predictions(classifier, texts, batch_size=16):
         results = classifier(batch)
 
         for item in results:
-            predicted_labels.append(map_model_output(item["label"]))
+            pred = map_prediction(
+                item["label"],
+                float(item["score"]),
+                neutral_threshold=neutral_threshold
+            )
+            predicted_labels.append(pred)
             confidence_scores.append(float(item["score"]))
 
     return predicted_labels, confidence_scores
@@ -216,11 +190,11 @@ if df.empty:
     st.error("The cleaned dataset is empty. Please return to Page 1 and prepare a valid dataset.")
     st.stop()
 
-# Profile
+# Metrics
 m1, m2, m3 = st.columns(3)
 m1.metric("Rows Available", df.shape[0])
 m2.metric("Columns Available", df.shape[1])
-m3.metric("Workflow", "DistilBERT")
+m3.metric("Model", "DistilBERT")
 
 st.markdown('<div class="section-title">Dataset Preview</div>', unsafe_allow_html=True)
 st.dataframe(df.head(100), use_container_width=True)
@@ -244,7 +218,7 @@ with left_col:
 
     label_column_options = ["None"] + all_columns
     label_column = st.selectbox(
-        "Select label column (optional but recommended for evaluation)",
+        "Select label column (optional, for later evaluation)",
         label_column_options
     )
 
@@ -262,27 +236,13 @@ with right_col:
         index=0
     )
 
-    use_default_domain_model = st.checkbox(
-        "Use recommended model for selected domain",
-        value=True
+    neutral_threshold = st.slider(
+        "Neutral confidence threshold",
+        min_value=0.50,
+        max_value=0.90,
+        value=0.60,
+        step=0.01
     )
-
-if use_default_domain_model:
-    selected_model_name = get_default_model_for_domain(domain)
-else:
-    selected_model_name = st.text_input(
-        "Enter custom Hugging Face model name",
-        value="cardiffnlp/twitter-roberta-base-sentiment-latest"
-    )
-
-st.markdown(f"""
-<div class="info-box">
-<b>Selected Domain:</b> {domain}<br>
-<b>Selected Model:</b> {selected_model_name}<br>
-<b>Text Column:</b> {text_column}<br>
-<b>Label Column:</b> {label_column}
-</div>
-""", unsafe_allow_html=True)
 
 max_rows = st.number_input(
     "Number of rows to analyse",
@@ -294,60 +254,68 @@ max_rows = st.number_input(
 
 batch_size = st.selectbox(
     "Batch size for inference",
-    [8, 16, 32, 64],
+    [8, 16, 32],
     index=1
 )
+
+st.markdown(f"""
+<div class="info-box">
+<b>Selected Domain:</b> {domain}<br>
+<b>Model:</b> distilbert-base-uncased-finetuned-sst-2-english<br>
+<b>Text Column:</b> {text_column}<br>
+<b>Label Column:</b> {label_column}
+</div>
+""", unsafe_allow_html=True)
 
 if st.button("Run Sentiment Analysis", type="primary"):
     try:
         analysis_df = df.head(max_rows).copy()
 
-        # Prepare text
-        analysis_df[text_column] = analysis_df[text_column].astype(str).fillna("").str.strip()
+        analysis_df[text_column] = analysis_df[text_column].fillna("").astype(str).str.strip()
         analysis_df = analysis_df[analysis_df[text_column] != ""]
 
         if analysis_df.empty:
             st.error("No valid text rows available after cleaning.")
             st.stop()
 
-        with st.spinner("Loading model and generating predictions..."):
-            classifier = load_sentiment_model(selected_model_name)
+        with st.spinner("Loading DistilBERT and generating predictions..."):
+            classifier = load_sentiment_model()
 
             texts = analysis_df[text_column].tolist()
             predictions, confidence_scores = run_predictions(
                 classifier=classifier,
                 texts=texts,
-                batch_size=batch_size
+                batch_size=batch_size,
+                neutral_threshold=neutral_threshold
             )
 
         analysis_df["predicted_sentiment"] = predictions
         analysis_df["confidence_score"] = confidence_scores
         analysis_df["selected_domain"] = domain
-        analysis_df["selected_model"] = selected_model_name
+        analysis_df["selected_model"] = "distilbert-base-uncased-finetuned-sst-2-english"
 
-        # Normalize labels if user selected one
         if label_column != "None" and label_column in analysis_df.columns:
             analysis_df["true_label"] = analysis_df[label_column].apply(normalize_true_label)
         else:
             analysis_df["true_label"] = np.nan
 
-        # Save to session state for Page 3
+        # Save for Page 3
         st.session_state["analysis_results"] = analysis_df
         st.session_state["text_column"] = text_column
         st.session_state["label_column"] = label_column
         st.session_state["domain"] = domain
-        st.session_state["model_name"] = selected_model_name
+        st.session_state["model_name"] = "distilbert-base-uncased-finetuned-sst-2-english"
 
         st.success("Sentiment analysis completed successfully.")
 
-        st.markdown('<div class="section-title">Prediction Preview</div>', unsafe_allow_html=True)
         preview_cols = [text_column, "predicted_sentiment", "confidence_score"]
-        if label_column != "None" and "true_label" in analysis_df.columns:
+        if label_column != "None":
             preview_cols.insert(1, "true_label")
 
+        st.markdown('<div class="section-title">Prediction Preview</div>', unsafe_allow_html=True)
         st.dataframe(analysis_df[preview_cols].head(100), use_container_width=True)
 
-        st.info("Predictions have been saved. You can now move to the Results page.")
+        st.info("Predictions have been saved successfully. You can now move to the Results page.")
 
     except Exception as e:
         st.error(f"An error occurred during sentiment analysis: {e}")
