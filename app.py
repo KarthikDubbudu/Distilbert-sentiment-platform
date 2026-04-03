@@ -1,8 +1,4 @@
-import json
-from pathlib import Path
-
 import streamlit as st
-from streamlit_lottie import st_lottie
 
 st.set_page_config(
     page_title="Sentiment Analysis Platform",
@@ -11,36 +7,19 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-
-# -------------------------------------------------
-# Helpers
-# -------------------------------------------------
-def load_lottie_file(filepath: str):
-    file_path = Path(filepath)
-    if file_path.exists():
-        with open(file_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return None
-
-
-# -------------------------------------------------
-# Load local Lottie animation
-# -------------------------------------------------
-lottie_animation = load_lottie_file("assets/home_animation.json")
-
-
 # -------------------------------------------------
 # Premium CSS Styling
 # -------------------------------------------------
 st.markdown("""
 <style>
+/* Global */
 .main {
     background: radial-gradient(circle at top left, #111827 0%, #0E1117 45%, #090C10 100%);
 }
 .block-container {
-    padding-top: 1.3rem;
+    padding-top: 1.5rem;
     padding-bottom: 2rem;
-    max-width: 1280px;
+    max-width: 1250px;
 }
 section[data-testid="stSidebar"] {
     background: linear-gradient(180deg, #0B1220 0%, #111827 100%);
@@ -58,33 +37,50 @@ section[data-testid="stSidebar"] {
         transform: translateY(0px);
     }
 }
-@keyframes softGlow {
-    0% { box-shadow: 0 0 0px rgba(79,139,249,0.08); }
-    50% { box-shadow: 0 0 24px rgba(79,139,249,0.18); }
-    100% { box-shadow: 0 0 0px rgba(79,139,249,0.08); }
+@keyframes pulseGlow {
+    0% {
+        box-shadow: 0 0 0px rgba(79,139,249,0.10);
+    }
+    50% {
+        box-shadow: 0 0 22px rgba(79,139,249,0.22);
+    }
+    100% {
+        box-shadow: 0 0 0px rgba(79,139,249,0.10);
+    }
+}
+@keyframes floatCard {
+    0% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-4px);
+    }
+    100% {
+        transform: translateY(0px);
+    }
 }
 
 /* Hero */
-.hero-box {
-    padding: 2.3rem;
+.hero-wrapper {
+    padding: 2.6rem 2.4rem;
     border-radius: 28px;
     background:
-        linear-gradient(135deg, rgba(28,31,38,0.96), rgba(17,24,39,0.96)),
-        radial-gradient(circle at top right, rgba(79,139,249,0.14), transparent 35%);
+        linear-gradient(135deg, rgba(28,31,38,0.95), rgba(17,24,39,0.95)),
+        radial-gradient(circle at top right, rgba(79,139,249,0.16), transparent 35%);
     border: 1px solid rgba(255,255,255,0.06);
-    box-shadow: 0 20px 48px rgba(0,0,0,0.34);
-    animation: fadeInUp 0.85s ease-out;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+    animation: fadeInUp 0.9s ease-out;
     position: relative;
     overflow: hidden;
 }
-.hero-box::after {
+.hero-wrapper::after {
     content: "";
     position: absolute;
-    top: -90px;
-    right: -70px;
-    width: 240px;
-    height: 240px;
-    background: radial-gradient(circle, rgba(79,139,249,0.18), transparent 72%);
+    top: -80px;
+    right: -60px;
+    width: 220px;
+    height: 220px;
+    background: radial-gradient(circle, rgba(79,139,249,0.18), transparent 70%);
     border-radius: 50%;
 }
 .badge-row {
@@ -94,61 +90,70 @@ section[data-testid="stSidebar"] {
     margin-bottom: 1rem;
 }
 .badge-pill {
-    background: rgba(79,139,249,0.10);
-    border: 1px solid rgba(79,139,249,0.24);
-    color: #D8E6FF;
+    background: rgba(79,139,249,0.12);
+    border: 1px solid rgba(79,139,249,0.25);
+    color: #D6E4FF;
     padding: 0.42rem 0.85rem;
     border-radius: 999px;
     font-size: 0.82rem;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0.2px;
 }
 .hero-title {
     font-size: 3rem;
     font-weight: 900;
-    line-height: 1.08;
+    line-height: 1.1;
     color: #FAFAFA;
-    margin-bottom: 0.85rem;
+    margin-bottom: 0.8rem;
 }
 .hero-title span {
     color: #7FB3FF;
 }
 .hero-subtitle {
-    font-size: 1.03rem;
+    font-size: 1.05rem;
     color: #C9D1D9;
     line-height: 1.85;
     max-width: 900px;
 }
-.hero-side-panel {
-    padding: 1.35rem;
+.hero-side-card {
+    padding: 1.6rem;
     border-radius: 24px;
-    background: linear-gradient(135deg, rgba(26,31,43,0.98), rgba(20,25,34,0.98));
+    background: linear-gradient(135deg, rgba(28,31,38,0.98), rgba(20,24,32,0.98));
     border: 1px solid rgba(255,255,255,0.06);
-    box-shadow: 0 16px 34px rgba(0,0,0,0.28);
-    min-height: 100%;
+    box-shadow: 0 16px 30px rgba(0,0,0,0.30);
     animation: fadeInUp 1s ease-out;
+    text-align: center;
+    min-height: 100%;
 }
-.lottie-wrapper {
-    border-radius: 20px;
-    padding: 0.4rem;
-    background: linear-gradient(135deg, rgba(79,139,249,0.08), rgba(127,179,255,0.04));
-    border: 1px solid rgba(79,139,249,0.16);
-    animation: softGlow 2.6s infinite ease-in-out;
+.hero-side-icon {
+    font-size: 4rem;
+    margin-bottom: 0.6rem;
+}
+.hero-side-title {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #FAFAFA;
+    margin-bottom: 0.5rem;
+}
+.hero-side-text {
+    color: #C9D1D9;
+    line-height: 1.7;
+    font-size: 0.96rem;
 }
 
-/* Section */
+/* Section title */
 .section-title {
     font-size: 1.55rem;
     font-weight: 800;
     color: #FAFAFA;
-    margin-top: 1.1rem;
+    margin-top: 1.2rem;
     margin-bottom: 1rem;
-    animation: fadeInUp 0.8s ease-out;
+    animation: fadeInUp 0.7s ease-out;
 }
 .section-subtitle {
-    font-size: 0.97rem;
+    font-size: 0.98rem;
     color: #AAB6C5;
-    margin-top: -0.35rem;
+    margin-top: -0.4rem;
     margin-bottom: 1rem;
     line-height: 1.7;
 }
@@ -160,12 +165,12 @@ section[data-testid="stSidebar"] {
     background: linear-gradient(135deg, #1A1F2B 0%, #141922 100%);
     border: 1px solid rgba(255,255,255,0.06);
     box-shadow: 0 10px 28px rgba(0,0,0,0.22);
-    min-height: 220px;
-    animation: fadeInUp 0.85s ease-out;
-    transition: all 0.28s ease;
+    min-height: 210px;
+    animation: fadeInUp 0.8s ease-out;
+    transition: all 0.3s ease;
 }
 .premium-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-4px);
     border: 1px solid rgba(79,139,249,0.28);
     box-shadow: 0 16px 34px rgba(0,0,0,0.30);
 }
@@ -177,15 +182,15 @@ section[data-testid="stSidebar"] {
     font-size: 1.08rem;
     font-weight: 800;
     color: #FAFAFA;
-    margin-bottom: 0.55rem;
+    margin-bottom: 0.6rem;
 }
 .card-text {
     font-size: 0.95rem;
     color: #C9D1D9;
-    line-height: 1.72;
+    line-height: 1.7;
 }
 
-/* Workflow */
+/* Workflow step cards */
 .workflow-card {
     padding: 1.35rem;
     border-radius: 22px;
@@ -194,6 +199,7 @@ section[data-testid="stSidebar"] {
     box-shadow: 0 10px 26px rgba(0,0,0,0.23);
     min-height: 220px;
     animation: fadeInUp 0.9s ease-out;
+    position: relative;
 }
 .step-number {
     width: 42px;
@@ -206,7 +212,7 @@ section[data-testid="stSidebar"] {
     justify-content: center;
     font-weight: 800;
     margin-bottom: 0.8rem;
-    animation: softGlow 2.2s infinite ease-in-out;
+    animation: pulseGlow 2.3s infinite ease-in-out;
 }
 .step-title {
     font-size: 1.08rem;
@@ -216,35 +222,58 @@ section[data-testid="stSidebar"] {
 }
 .step-text {
     color: #C9D1D9;
-    line-height: 1.72;
+    line-height: 1.75;
     font-size: 0.95rem;
 }
 
-/* Info / CTA */
-.info-strip {
-    padding: 1.1rem 1.3rem;
+/* Showcase strip */
+.showcase-box {
+    padding: 1.2rem 1.35rem;
     border-radius: 18px;
-    background: linear-gradient(135deg, rgba(79,139,249,0.10), rgba(127,179,255,0.06));
-    border: 1px solid rgba(79,139,249,0.22);
-    color: #DCE8FF;
+    background: rgba(17,24,39,0.7);
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    animation: fadeInUp 0.9s ease-out;
+}
+.showcase-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #FAFAFA;
+    margin-bottom: 0.3rem;
+}
+.showcase-text {
+    color: #C9D1D9;
+    line-height: 1.65;
+    font-size: 0.92rem;
+}
+
+/* CTA strip */
+.cta-strip {
+    padding: 1.2rem 1.4rem;
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(79,139,249,0.12), rgba(127,179,255,0.08));
+    border: 1px solid rgba(79,139,249,0.24);
+    color: #EAF2FF;
     margin-top: 1rem;
     margin-bottom: 1rem;
     animation: fadeInUp 1s ease-out;
 }
-.cta-box {
-    padding: 1.2rem 1.35rem;
-    border-radius: 18px;
-    background: linear-gradient(135deg, #161B22 0%, #121720 100%);
-    border: 1px solid rgba(255,255,255,0.06);
-    box-shadow: 0 10px 24px rgba(0,0,0,0.20);
-    animation: fadeInUp 1s ease-out;
+.cta-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    margin-bottom: 0.3rem;
+}
+.cta-text {
+    font-size: 0.95rem;
+    color: #D7E5FF;
+    line-height: 1.7;
 }
 
-/* Metric cards */
+/* Streamlit metrics polish */
 div[data-testid="stMetric"] {
     background: linear-gradient(135deg, #1A1F2B 0%, #141922 100%);
     border: 1px solid rgba(255,255,255,0.06);
-    padding: 0.95rem;
+    padding: 0.9rem;
     border-radius: 18px;
     box-shadow: 0 10px 24px rgba(0,0,0,0.18);
     animation: fadeInUp 0.9s ease-out;
@@ -260,7 +289,7 @@ div[data-testid="stMetricLabel"] {
 div.stButton > button {
     border-radius: 14px;
     font-weight: 700;
-    padding: 0.68rem 1rem;
+    padding: 0.65rem 1rem;
     width: 100%;
     border: 1px solid rgba(79,139,249,0.26);
     background: linear-gradient(135deg, #1B2535, #162030);
@@ -271,89 +300,66 @@ div.stButton > button:hover {
     box-shadow: 0 0 18px rgba(79,139,249,0.12);
 }
 
+/* Hide excess top spacing visuals */
 header[data-testid="stHeader"] {
     background: transparent;
 }
 </style>
 """, unsafe_allow_html=True)
 
-
 # -------------------------------------------------
 # Hero Section
 # -------------------------------------------------
-left, right = st.columns([1.75, 1], gap="large")
+col1, col2 = st.columns([1.85, 1], gap="large")
 
-with left:
+with col1:
     st.markdown("""
-    <div class="hero-box">
+    <div class="hero-wrapper">
         <div class="badge-row">
             <div class="badge-pill">DistilBERT Powered</div>
             <div class="badge-pill">Supervised Workflow</div>
-            <div class="badge-pill">CSV / XLSX Support</div>
+            <div class="badge-pill">CSV / XLSX Ready</div>
             <div class="badge-pill">Domain-Aware</div>
         </div>
-        <div class="hero-title">🧠 Ultra-Premium <span>Sentiment Analysis</span> Experience</div>
+        <div class="hero-title">🧠 Premium <span>Sentiment Analysis</span> Platform</div>
         <div class="hero-subtitle">
-            A scalable, elegant, and user-focused web platform designed to transform labelled text and
-            structured feedback data into clear sentiment insights. Built for non-technical users, the application
-            combines smart data cleaning, domain-aware analysis, DistilBERT-powered prediction, and polished
-            visual interpretation in one premium workflow.
+            A scalable web-based application designed for non-technical users to upload, clean, analyse,
+            and interpret labelled text and structured feedback data through an elegant and highly interactive interface.
+            The platform integrates <b>DistilBERT</b> with accessible data preparation, domain-aware analysis,
+            and a polished results dashboard for practical and educational use.
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-with right:
-    st.markdown('<div class="hero-side-panel">', unsafe_allow_html=True)
-    st.markdown('<div class="lottie-wrapper">', unsafe_allow_html=True)
-
-    if lottie_animation is not None:
-        st_lottie(
-            lottie_animation,
-            speed=1,
-            reverse=False,
-            loop=True,
-            quality="high",
-            height=280,
-            key="home_lottie"
-        )
-    else:
-        st.markdown("""
-        <div style="text-align:center; color:#C9D1D9; padding:2rem 1rem;">
-            <div style="font-size:3rem;">✨</div>
-            <div style="font-size:1rem; font-weight:700; color:#FAFAFA; margin-top:0.5rem;">
-                Lottie animation not found
-            </div>
-            <div style="margin-top:0.5rem; line-height:1.7;">
-                Add a JSON file at <b>assets/home_animation.json</b> to display the premium animation here.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown('</div>', unsafe_allow_html=True)
+with col2:
     st.markdown("""
-    <div style="margin-top:1rem; text-align:center; color:#C9D1D9; line-height:1.7;">
-        Interactive visual storytelling for a modern and memorable first impression.
+    <div class="hero-side-card">
+        <div class="hero-side-icon">✨</div>
+        <div class="hero-side-title">Interactive Intelligence</div>
+        <div class="hero-side-text">
+            Transform messy datasets into clear, model-driven insights through a premium workflow built for clarity,
+            interpretability, and confident decision-making.
+        </div>
     </div>
     """, unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
 
 # -------------------------------------------------
 # Highlights
 # -------------------------------------------------
 st.markdown('<div class="section-title">Platform Highlights</div>', unsafe_allow_html=True)
-st.markdown('<div class="section-subtitle">A concise overview of the technical foundations and practical usability of the platform.</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-subtitle">A concise overview of the core technological and usability foundations of the platform.</div>', unsafe_allow_html=True)
 
 m1, m2, m3, m4 = st.columns(4)
 m1.metric("Model Backbone", "DistilBERT")
-m2.metric("Workflow Type", "Supervised")
+m2.metric("Analysis Workflow", "Supervised")
 m3.metric("Input Support", "CSV / XLSX")
-m4.metric("Target Audience", "Non-Technical")
+m4.metric("Target Users", "Non-Technical")
 
 # -------------------------------------------------
-# Feature Cards
+# Premium feature cards
 # -------------------------------------------------
 st.markdown('<div class="section-title">Core Capabilities</div>', unsafe_allow_html=True)
-st.markdown('<div class="section-subtitle">Each module is crafted to make the full sentiment analysis journey transparent, intuitive, and visually impressive.</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-subtitle">Each module is designed to make the sentiment analysis pipeline intuitive, transparent, and visually engaging.</div>', unsafe_allow_html=True)
 
 c1, c2, c3 = st.columns(3, gap="large")
 
@@ -363,8 +369,8 @@ with c1:
         <div class="card-icon">📂</div>
         <div class="card-title">Advanced Upload & Cleaning</div>
         <div class="card-text">
-            Upload labelled CSV or Excel datasets, inspect missing-value patterns, remove duplicates, standardise text,
-            compare messy and cleaned columns, and prepare the data with confidence before analysis.
+            Upload labelled datasets in CSV or Excel format, explore missing-value distributions, remove duplicates,
+            standardise text, and compare messy and cleaned columns before analysis.
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -373,10 +379,10 @@ with c2:
     st.markdown("""
     <div class="premium-card">
         <div class="card-icon">🤖</div>
-        <div class="card-title">Domain-Aware Sentiment Analysis</div>
+        <div class="card-title">Domain-Aware Sentiment Engine</div>
         <div class="card-text">
-            Perform DistilBERT-based sentiment classification with optional domain guidance across student feedback,
-            product reviews, movie reviews, social media content, and general-purpose textual data.
+            Run sentiment analysis using DistilBERT while selecting the preferred domain context, such as student feedback,
+            movie reviews, product reviews, social media, or a general-purpose workflow.
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -385,74 +391,118 @@ with c3:
     st.markdown("""
     <div class="premium-card">
         <div class="card-icon">📊</div>
-        <div class="card-title">Premium Analytics Dashboard</div>
+        <div class="card-title">Premium Results Dashboard</div>
         <div class="card-text">
-            Review confidence scores, sentiment distributions, evaluation metrics, visual comparisons,
-            and downloadable enriched results through a polished and highly interactive reporting space.
+            Explore confidence scores, sentiment distributions, evaluation metrics, confusion matrices, and downloadable
+            enriched outputs through a highly polished analytics experience.
         </div>
     </div>
     """, unsafe_allow_html=True)
 
 # -------------------------------------------------
-# Workflow
+# Showcase strip
+# -------------------------------------------------
+st.markdown('<div class="section-title">Why This Platform Stands Out</div>', unsafe_allow_html=True)
+
+s1, s2, s3 = st.columns(3, gap="large")
+
+with s1:
+    st.markdown("""
+    <div class="showcase-box">
+        <div class="showcase-title">Accessible by Design</div>
+        <div class="showcase-text">
+            The entire application is structured for users without coding experience, making advanced NLP accessible in a practical way.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with s2:
+    st.markdown("""
+    <div class="showcase-box">
+        <div class="showcase-title">Transparent Workflow</div>
+        <div class="showcase-text">
+            Users can inspect data preparation, compare cleaned text, review predictions, and understand outputs rather than receiving black-box results.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with s3:
+    st.markdown("""
+    <div class="showcase-box">
+        <div class="showcase-title">Research-Ready Experience</div>
+        <div class="showcase-text">
+            The platform supports academic experimentation, educational demonstration, and practical analytics with a modern visual interface.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# -------------------------------------------------
+# Workflow section
 # -------------------------------------------------
 st.markdown('<div class="section-title">Application Workflow</div>', unsafe_allow_html=True)
-st.markdown('<div class="section-subtitle">A premium three-stage pipeline that moves from raw input to interpretable sentiment insight.</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-subtitle">A guided three-stage process that moves from raw data to interpretable sentiment insights.</div>', unsafe_allow_html=True)
 
-w1, w2, w3 = st.columns(3, gap="large")
+flow1, flow2, flow3 = st.columns(3, gap="large")
 
-with w1:
+with flow1:
     st.markdown("""
     <div class="workflow-card">
         <div class="step-number">1</div>
         <div class="step-title">Upload & Inspect</div>
         <div class="step-text">
-            Import your labelled dataset and inspect its quality through previews, profile metrics,
-            missing-value summaries, and structured data diagnostics.
+            Begin by uploading a labelled dataset and inspecting its structure, missing values, duplicate records,
+            and overall data quality through clean previews and visual diagnostics.
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-with w2:
+with flow2:
     st.markdown("""
     <div class="workflow-card">
         <div class="step-number">2</div>
         <div class="step-title">Clean & Analyse</div>
         <div class="step-text">
-            Apply configurable cleaning operations, choose the preferred domain, and run DistilBERT-powered
-            sentiment analysis with a clear and guided user experience.
+            Apply configurable cleaning operations, select the appropriate domain, and perform sentiment analysis
+            using DistilBERT to generate predictions and confidence scores.
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-with w3:
+with flow3:
     st.markdown("""
     <div class="workflow-card">
         <div class="step-number">3</div>
-        <div class="step-title">Interpret & Download</div>
+        <div class="step-title">Explore & Interpret</div>
         <div class="step-text">
-            Explore interactive charts, prediction summaries, performance indicators, and downloadable results
-            designed for learning, research, and practical decision support.
+            Review the enriched outputs in a premium dashboard with visual analytics, evaluation metrics,
+            and downloadable results tailored for learning and decision support.
         </div>
     </div>
     """, unsafe_allow_html=True)
 
 # -------------------------------------------------
-# CTA and Quick View
+# CTA strip
 # -------------------------------------------------
 st.markdown("""
-<div class="info-strip">
-<b>🚀 Getting Started:</b> Use the left navigation menu and begin with <b>Upload and Clean</b>.
-The platform is designed to guide you from data preparation to final visual interpretation in one cohesive workflow.
+<div class="cta-strip">
+    <div class="cta-title">🚀 Getting Started</div>
+    <div class="cta-text">
+        Use the navigation menu on the left and begin with <b>Upload and Clean</b>.
+        The platform has been designed to provide a complete, user-friendly sentiment analysis workflow
+        from dataset preparation to final visual interpretation.
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
+# -------------------------------------------------
+# Interactive quick actions
+# -------------------------------------------------
 st.markdown('<div class="section-title">Quick View</div>', unsafe_allow_html=True)
-st.markdown('<div class="section-subtitle">Select your main purpose to see how the platform can support your workflow.</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-subtitle">A simple interactive panel to summarise the platform orientation and intended use.</div>', unsafe_allow_html=True)
 
-q1, q2 = st.columns([1.2, 1], gap="large")
+qa1, qa2 = st.columns([1.2, 1], gap="large")
 
-with q1:
+with qa1:
     user_goal = st.selectbox(
         "Select your primary purpose",
         [
@@ -465,58 +515,45 @@ with q1:
 
     if user_goal == "Educational learning and experimentation":
         st.markdown("""
-        <div class="cta-box">
-            <b style="color:#FAFAFA;">🎓 Educational Learning</b><br><br>
-            <span style="color:#C9D1D9; line-height:1.8;">
-            The platform is well-suited for learners who want to understand how labelled data, cleaning operations,
-            model predictions, and evaluation metrics interact within a complete NLP workflow.
-            </span>
+        <div class="info-box">
+        This platform is especially suitable for learners who want to understand how labelled data,
+        cleaning operations, model predictions, and evaluation metrics work together in a complete NLP workflow.
         </div>
         """, unsafe_allow_html=True)
 
     elif user_goal == "Business review analysis":
         st.markdown("""
-        <div class="cta-box">
-            <b style="color:#FAFAFA;">💼 Business Review Analysis</b><br><br>
-            <span style="color:#C9D1D9; line-height:1.8;">
-            The workflow can be used to analyse customer-facing review datasets and uncover overall sentiment patterns,
-            confidence trends, and structured business-facing insights.
-            </span>
+        <div class="info-box">
+        The platform can be used to analyse customer-facing feedback and review datasets,
+        helping users detect overall sentiment patterns and confidence trends in a structured way.
         </div>
         """, unsafe_allow_html=True)
 
     elif user_goal == "Research demonstration":
         st.markdown("""
-        <div class="cta-box">
-            <b style="color:#FAFAFA;">🔬 Research Demonstration</b><br><br>
-            <span style="color:#C9D1D9; line-height:1.8;">
-            The interface is suitable for dissertation work, academic demonstrations, and project presentations
-            where accessibility, explainability, and visual polish are important.
-            </span>
+        <div class="info-box">
+        The workflow is appropriate for project demonstrations, dissertation work,
+        and research communication where interpretability and usability are important.
         </div>
         """, unsafe_allow_html=True)
 
     else:
         st.markdown("""
-        <div class="cta-box">
-            <b style="color:#FAFAFA;">🌐 General Exploration</b><br><br>
-            <span style="color:#C9D1D9; line-height:1.8;">
-            The platform provides a straightforward path from uploaded labelled data
-            to sentiment prediction and interpretive visual analytics.
-            </span>
+        <div class="info-box">
+        The general workflow provides a straightforward path from uploaded labelled data
+        to sentiment predictions and visual result interpretation.
         </div>
         """, unsafe_allow_html=True)
 
-with q2:
+with qa2:
     st.markdown("""
-    <div class="premium-card" style="min-height:100%;">
-        <div class="card-icon">🧭</div>
+    <div class="premium-card" style="min-height: 100%;">
+        <div class="card-icon">💡</div>
         <div class="card-title">Suggested Navigation</div>
         <div class="card-text">
             <b>Page 1:</b> Upload and clean the dataset<br><br>
-            <b>Page 2:</b> Select the text column, label column, and domain, then run DistilBERT analysis<br><br>
-            <b>Page 3:</b> Explore graphics, metrics, confidence scores, and downloadable outputs<br><br>
-            <b>Page 4:</b> Share feedback to help improve the platform
+            <b>Page 2:</b> Configure the text column, label column, and domain, then run DistilBERT analysis<br><br>
+            <b>Page 3:</b> Explore metrics, graphics, confidence scores, and downloadable outputs
         </div>
     </div>
     """, unsafe_allow_html=True)
