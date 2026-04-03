@@ -1,3 +1,5 @@
+streamlit-lottie
+requests
 streamlit
 pandas
 numpy
